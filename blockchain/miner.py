@@ -26,7 +26,7 @@ def proof_of_work(last_proof):
     proof = 0
     lower_bound = -99999999999999999999999999999999
     upper_bound = 99999999999999999999999999999999
-    while not valid_proof(last_proof, proof):
+    while not valid_proof(last_proof, proof) and timer()-start < 2:
         proof = random.randint(lower_bound, upper_bound)
     print("Proof found: " + str(proof) + " in " + str(timer() - start))
     return proof
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             print("Response returned:")
             print(r)
             break
-        
+
         if data.get('message') == 'New Block Forged':
             coins_mined += 1
             print("Total coins mined: " + str(coins_mined))
