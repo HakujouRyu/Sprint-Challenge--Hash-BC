@@ -24,13 +24,15 @@ def proof_of_work(last_proof):
 
     print("Searching for next proof")
     proof = 0
-    #  TODO: Your code here
-
+    lower_bound = -99999999999999999999999999999999
+    upper_bound = 99999999999999999999999999999999
+    while not valid_proof(last_proof, proof):
+        proof = random.randint(lower_bound, upper_bound)
     print("Proof found: " + str(proof) + " in " + str(timer() - start))
     return proof
 
 
-def valid_proof(last_hash, proof):
+def valid_proof(last_proof, proof):
     """
     Validates the Proof:  Multi-ouroborus:  Do the last five characters of
     the hash of the last proof match the first five characters of the hash
@@ -39,8 +41,10 @@ def valid_proof(last_hash, proof):
     IE:  last_hash: ...AE912345, new hash 12345E88...
     """
 
-    # TODO: Your code here!
-    pass
+    last_hash = hashlib.sha256(f"{last_proof}".encode()).hexdigest()
+    new_hash = hashlib.sha256(f"{proof}".encode()).hexdigest()
+    
+    return  last_hash[-5:] == new_hash[:5]
 
 
 if __name__ == '__main__':
@@ -65,14 +69,28 @@ if __name__ == '__main__':
     while True:
         # Get the last proof from the server
         r = requests.get(url=node + "/last_proof")
-        data = r.json()
+        try:
+            data = r.json()
+        except ValueError:
+            print("Error:  Non-json response")
+            print("Response returned:")
+            print(r)
+            break
+
         new_proof = proof_of_work(data.get('proof'))
 
         post_data = {"proof": new_proof,
                      "id": id}
 
         r = requests.post(url=node + "/mine", json=post_data)
-        data = r.json()
+        try:
+            data = r.json()
+        except ValueError:
+            print("Error:  Non-json response")
+            print("Response returned:")
+            print(r)
+            break
+        
         if data.get('message') == 'New Block Forged':
             coins_mined += 1
             print("Total coins mined: " + str(coins_mined))
